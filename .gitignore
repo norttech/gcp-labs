@@ -1,0 +1,8 @@
+node_modules
+scripts
+.env
+.env.*
+google-credentials.json
+build
+.gcloudignore
+test

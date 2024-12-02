@@ -1,0 +1,47 @@
+{
+  "name": "main-api",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "lint": "gts lint",
+    "clean": "gts clean",
+    "fix": "gts fix",
+    "start": "node dist/index.js",
+    "compile": "tsc",
+    "dev": "nodemon src/index.ts | pino-pretty",
+    "prepare": "yarn.cmd run compile",
+    "pretest": "yarn.cmd run compile",
+    "posttest": "yarn.cmd run lint"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "body-parser": "^1.20.3",
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.5",
+    "express": "^4.21.1",
+    "pino": "^9.5.0"
+  },
+  "devDependencies": {
+    "@types/cors": "^2.8.17",
+    "@types/express": "^5.0.0",
+    "@types/node": "^22.7.5",
+    "@types/pino": "^7.0.4",
+    "@types/shelljs": "^0.8.11",
+    "@types/supertest": "^6.0.2",
+    "@typescript-eslint/eslint-plugin": "^8.16.0",
+    "@typescript-eslint/parser": "^8.16.0",
+    "eslint": "^9.16.0",
+    "eslint-config-prettier": "^9.1.0",
+    "eslint-plugin-prettier": "^5.2.1",
+    "gts": "^6.0.2",
+    "nodemon": "^3.1.7",
+    "pino-pretty": "^13.0.0",
+    "prettier": "^3.4.1",
+    "shelljs": "^0.8.5",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.7.2"
+  }
+}
