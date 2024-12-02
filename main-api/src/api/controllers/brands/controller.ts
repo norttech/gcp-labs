@@ -9,7 +9,7 @@ export class Controller {
     async findById(req: Request, res: Response, next: NextFunction) {
         try {
             const { id } = req.params;
-            const branch = await BrandsService.findById(Number(id));
+            const branch = await BrandsService.findById(id);
             res.json(branch);
             return;
         } catch (error) {
@@ -21,14 +21,24 @@ export class Controller {
         BrandsService.create(req.body.name).then((x) => res.json(x));
     }
 
-    update(req: Request, res: Response) {
-        const { id } = req.params;
-        BrandsService.update(Number(id), req.body).then((x) => res.json(x));
+    async update(req: Request, res: Response, next: NextFunction) {
+        try {
+            const { id } = req.params;
+            const upt = await BrandsService.update(id, req.body);
+            res.json(upt);
+        } catch (err) {
+            next(err);
+        }
     }
 
-    delete(req: Request, res: Response) {
-        const { id } = req.params;
-        BrandsService.delete(Number(id)).then((x) => res.json(x));
+    async delete(req: Request, res: Response, next: NextFunction) {
+        try {
+            const { id } = req.params;
+            const upt = await BrandsService.delete(id);
+            res.json(upt);
+        } catch (err) {
+            next(err);
+        }
     }
 }
 export default new Controller();

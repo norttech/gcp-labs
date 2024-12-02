@@ -1,50 +1,51 @@
+import { FirestoreClient } from '@google-cloud/firestore/types/v1/firestore_client';
 import L from '../../common/logger';
 import CustomError from '../../common/utils/customError';
+import { CollectionReference, Firestore } from '@google-cloud/firestore';
+import { randomUUID } from 'crypto';
 
 interface Brand {
-    id: number;
+    id: string;
     name: string;
 }
 
 export class BrandsService {
-    private brands: Brand[];
-    private internalId = 0;
+    private readonly collectionRef: CollectionReference<Brand>;
+
     constructor() {
-        this.brands = [
-            { id: ++this.internalId, name: 'Brand 1' },
-            { id: ++this.internalId, name: 'Brand 2' },
-        ];
+        const collectionName = process.env['FIRESTORE_COLLECTION']!;
+        this.collectionRef = new Firestore().collection(collectionName) as CollectionReference<Brand>;
     }
 
-    create(name: string): Promise<Brand> {
+    async create(name: string): Promise<Brand> {
         L.info(`create Brand with name ${name}`);
-        const brand: Brand = { id: ++this.internalId, name };
-        this.brands.push(brand);
-        return Promise.resolve(brand);
+        const id = randomUUID();
+        const brand: Brand = { id, name };
+        await this.collectionRef.doc(id).set(brand);
+        return brand;
     }
 
-    findAll(): Promise<Brand[]> {
-        L.info(this.brands, 'fetch all brands');
-        return Promise.resolve(this.brands);
+    async findAll(): Promise<Brand[]> {
+        L.info('fetch all brands');
+        return (await this.collectionRef.limit(10).get()).docs.map((x) => x.data());
     }
 
-    findById(id: number) {
+    async findById(id: string) {
         L.info(`fetch Brand with id ${id}`);
-        const element = this.brands.find((x) => x.id == id);
-        if (!element) throw new CustomError('Brand not found');
-        return Promise.resolve(element);
+        const element = await this.collectionRef.doc(id).get();
+        if (!element.exists) throw new CustomError('Brand not found');
+        return element.data();
     }
 
-    async update(id: number, data: Brand) {
-        await this.findById(id);
-        const index = this.brands.findIndex((x) => x.id == id);
-        this.brands[index].name = data.name;
-        return this.brands[index];
+    async update(id: string, data: Brand) {
+        const brand = await this.findById(id);
+        await this.collectionRef.doc(id).update({ ...data });
+        return { ...brand, ...data };
     }
 
-    async delete(id: number) {
+    async delete(id: string) {
         await this.findById(id);
-        this.brands = this.brands.filter((x) => x.id != id);
+        await this.collectionRef.doc(id).delete({ exists: true });
         return Promise.resolve({ status: 'deleted' });
     }
 }
