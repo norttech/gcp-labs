@@ -8,19 +8,16 @@ const crypto = require("node:crypto");
 const app = express();
 app.use(cors());
 
-process.env["GOOGLE_APPLICATION_CREDENTIALS"] = "./google-credentials.json";
-
+// to use of this way need to be implemented GOOGLE_APPLICATION_CREDENTIALS
 const storage = new Storage();
 
-const bucketName = "dev-tiankii-env";
-const folderPath = "uploaded-files";
+const bucketName = "{{YOU_BUCKET_ID}}";
+const folderPath = "{{BUCKET_FOLDER}}";
 const upload = multer({ storage: multer.memoryStorage() });
 
-app.post("/upload", upload.single("file"), async (req, res) => {
+app.post("/file/upload", upload.single("file"), async (req, res) => {
     try {
-        if (!req.file) {
-            return res.status(400).json({ error: "No file part in the request" });
-        }
+        if (!req.file) return res.status(400).json({ error: "No file part in the request" });
 
         const generateUniqueId = () => crypto.randomBytes(20).toString("hex");
 
@@ -38,7 +35,7 @@ app.post("/upload", upload.single("file"), async (req, res) => {
 
         stream.on("error", (err) => {
             console.error("Error uploading file:", err);
-            return res.status(500).json({ error: "Failed to upload file" });
+            res.status(500).json({ error: "Failed to upload file" });
         });
 
         stream.on("finish", () => {
@@ -71,7 +68,7 @@ app.get("/file/:id", async (req, res) => {
             expires: Date.now() + 15 * 60 * 1000,
         });
 
-       return res.status(200).json({ url: signedUrl });
+        return res.status(200).json({ url: signedUrl });
     } catch (error) {
         console.error("Error fetching file:", error);
         res.status(500).json({ error: "Internal server error" });
