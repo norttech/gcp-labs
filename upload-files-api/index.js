@@ -11,8 +11,9 @@ app.use(cors());
 // to use of this way need to be implemented GOOGLE_APPLICATION_CREDENTIALS
 const storage = new Storage();
 
-const bucketName = "{{YOU_BUCKET_ID}}";
-const folderPath = "{{BUCKET_FOLDER}}";
+const bucketName = process.env["BUCKET_ID"];
+const folderPath = process.env["BUCKET_FOLDER"];
+
 const upload = multer({ storage: multer.memoryStorage() });
 
 app.post("/file/upload", upload.single("file"), async (req, res) => {
@@ -62,18 +63,29 @@ app.get("/file/:id", async (req, res) => {
         const [exists] = await file.exists();
         if (!exists) return res.status(404).json({ error: "File not found" });
 
-        const [signedUrl] = await file.getSignedUrl({
-            version: "v4",
-            action: "read",
-            expires: Date.now() + 15 * 60 * 1000,
+        const [metadata] = await file.getMetadata();
+        const contentType = metadata.contentType || "application/octet-stream";
+
+        res.setHeader("Content-Type", contentType);
+
+        // Stream the file to the response
+        const stream = file.createReadStream();
+        stream.pipe(res);
+
+        stream.on("error", (err) => {
+            console.error("Error streaming file:", err);
+            res.status(500).json({ error: "Failed to fetch file" });
         });
 
-        return res.status(200).json({ url: signedUrl });
+        stream.on("end", () => {
+            console.log("File streamed successfully");
+        });
     } catch (error) {
         console.error("Error fetching file:", error);
         res.status(500).json({ error: "Internal server error" });
     }
 });
+
 
 app.use((req, res, next) => {
     res.status(404).json({ error: "Endpoint not found" });
